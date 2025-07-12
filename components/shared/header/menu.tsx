@@ -23,7 +23,7 @@ const Menu = () => {
           </Link>
         </Button>
         <Button asChild >
-          <Link href='/sing-in'><UserIcon /> Sing In</Link>
+          <Link href='/sign-in'><UserIcon /> Sing In</Link>
         </Button>
       </nav>
       <nav className='md:hidden'>
@@ -42,7 +42,7 @@ const Menu = () => {
               </Link>
             </Button>
             <Button asChild >
-              <Link href='/sing-in'><UserIcon /> Sing In</Link>
+              <Link href='/sign-in'><UserIcon /> Sing In</Link>
             </Button>
             <SheetDescription></SheetDescription>
           </SheetContent>
