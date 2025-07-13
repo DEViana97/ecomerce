@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { ZodError } from "zod";
+import { Prisma } from "@prisma/client";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -15,17 +17,24 @@ export function formatNumberWithDecimal(num: number): string {
   return decimal ? `${int}.${decimal.padEnd(2, '0')}` : `${int}.00`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function formatError(error: any) {
-  if (error.name === 'ZodError') {
-    const fieldErrors = error.errors.map((e: any) => e.message).join(', ')
-
-    return fieldErrors
-  } else if (error.name === 'PrismaClientKnownRequestError' && error.code === 'P2002') {
-    console.log(error.meta.target)
-    const field = error.meta.target ? error.meta.target[0] : 'field';
-    return `${field.charAt(0).toUpperCase() + field.slice(1)} already exists.`
+export async function formatError(error: unknown): Promise<string> {
+  if (error instanceof ZodError) {
+    const fieldErrors = error.errors.map((e) => e.message).join(', ');
+    return fieldErrors;
+  } else if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    (error as Prisma.PrismaClientKnownRequestError).code === 'P2002'
+  ) {
+    const prismaError = error as Prisma.PrismaClientKnownRequestError;
+    console.log(prismaError.meta?.target);
+    let field = 'field';
+    if (Array.isArray(prismaError.meta?.target) && prismaError.meta.target.length > 0) {
+      field = String(prismaError.meta.target[0]);
+    }
+    return `${field.charAt(0).toUpperCase() + field.slice(1)} already exists.`;
+  } else if (error instanceof Error) {
+    return error.message;
   } else {
-    return typeof error.message === 'string' ? error.message : JSON.stringify(error.message);
+    return JSON.stringify(error);
   }
 }
